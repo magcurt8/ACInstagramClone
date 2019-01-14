@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parse.LogInCallback;
 import com.parse.ParseException;
@@ -23,37 +24,56 @@ public class LogInView extends AppCompatActivity implements View.OnClickListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_in);
+        setTitle("Log In");
         userNameInput = findViewById(R.id.userNameInput);
         passwordInput = findViewById(R.id.passwordInput);
-        logInButton = findViewById(R.id.logInButton);
-        logInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ParseUser.logInInBackground(userNameInput.getText().toString(), passwordInput.getText().toString(), new LogInCallback() {
-                    @Override
-                    public void done(ParseUser user, ParseException e) {
-                        if (user != null && e == null) {
-                            FancyToast.makeText
-                                    (LogInView.this, user.get("username") + " logged in",
-                                            FancyToast.LENGTH_LONG, FancyToast.SUCCESS, true).show();
-                        } else {
-                            FancyToast.makeText
-                                    (LogInView.this, e.getMessage(),
-                                            FancyToast.LENGTH_LONG, FancyToast.ERROR, true).show();
-                        }
-                    }
-                });
 
-            }
-        });
+        logInButton = findViewById(R.id.logInButton);
+        logInButton.setOnClickListener(this);
 
         signUpText = findViewById(R.id.signUpText);
-        signUpText.setOnClickListener(LogInView.this);
+        signUpText.setOnClickListener(this);
+
+        if (ParseUser.getCurrentUser() != null) {
+
+            ParseUser.getCurrentUser().logOut();
+        }
     }
 
     @Override
-    public void onClick(View v) {
-        Intent intent = new Intent(LogInView.this, SignUpView.class);
+    public void onClick(View view) {
+
+        switch (view.getId()) {
+
+            case R.id.logInButton:
+                ParseUser.logInInBackground(userNameInput.getText().toString(),
+                        passwordInput.getText().toString(),
+                        new LogInCallback() {
+                            @Override
+                            public void done(ParseUser user, ParseException e) {
+
+                                if (user != null && e == null) {
+                                    FancyToast.makeText(LogInView.this,
+                                            user.getUsername() + " is Logged in successfully",
+                                            Toast.LENGTH_SHORT, FancyToast.SUCCESS,
+                                            true).show();
+                                    navigateToHomeScreen();
+                                }
+                            }
+                        });
+
+                break;
+
+            case R.id.signUpText:
+                Intent intent = new Intent(LogInView.this, SignUpView.class);
+                startActivity(intent);
+                break;
+        }
+    }
+
+    private void navigateToHomeScreen() {
+        Intent intent = new Intent(LogInView.this, HomeActivity.class);
         startActivity(intent);
+        finish();
     }
 }
